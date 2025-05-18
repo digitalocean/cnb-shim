@@ -8,8 +8,9 @@ import (
 
 	"gopkg.in/yaml.v2"
 
-	"github.com/buildpack/libbuildpack/layers"
+	"github.com/BurntSushi/toml"
 	"github.com/buildpack/libbuildpack/logger"
+	"github.com/buildpacks/libcnb"
 )
 
 type Release struct {
@@ -36,19 +37,43 @@ func WriteLaunchMetadata(appDir, layersDir, targetBuildpackDir string, log logge
 		processTypes[name] = command
 	}
 
-	processes := layers.Processes{}
+	processes := []libcnb.Process{}
+	// Starting from CNB Platform v0.5, buildpack has to set a default process.
+	// We're setting web as default process, buildpacks can override this if required.
 	for name, command := range processTypes {
-		processes = append(processes, layers.Process{
+		processes = append(processes, libcnb.Process{
 			Type:    name,
 			Command: command,
+			Default: name == "web",
 		})
 	}
 
-	l := layers.NewLayers(layersDir, log)
-
-	return l.WriteApplicationMetadata(layers.Metadata{
+	launchTOML := libcnb.LaunchTOML{
 		Processes: processes,
-	})
+	}
+
+	file := filepath.Join(layersDir, "launch.toml")
+
+	if err := WriteTomlFile(file, 0644, launchTOML); err != nil {
+		return err
+	}
+
+	file = filepath.Join(layersDir, "app.toml")
+	return WriteTomlFile(file, 0644, launchTOML)
+}
+
+func WriteTomlFile(filename string, perm os.FileMode, value interface{}) error {
+	if err := os.MkdirAll(filepath.Dir(filename), 0755); err != nil {
+		return err
+	}
+
+	file, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, perm)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	return toml.NewEncoder(file).Encode(value)
 }
 
 func ExecReleaseScript(appDir, targetBuildpackDir string) (Release, error) {

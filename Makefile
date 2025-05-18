@@ -13,7 +13,7 @@ GO111MODULE := on
 VERSION := "v0.3+do.2"
 
 build:
-	@GOOS=linux go build -o "bin/release" ./cmd/release/...
+	@GOOS=linux GOARCH=amd64 go build -o "bin/release" ./cmd/release/...
 
 test:
 	go test ./... -v
