@@ -10,7 +10,7 @@ SHELL=/usr/bin/env bash -o pipefail
 
 GO111MODULE := on
 
-VERSION := "v0.3+do.2"
+VERSION := "v0.5"
 
 build:
 	@GOOS=linux GOARCH=amd64 go build -o "bin/release" ./cmd/release/...
@@ -23,7 +23,7 @@ clean:
 	-rm -f bin/release
 
 package: clean build
-	@tar cvzf cnb-shim-$(VERSION).tgz bin/ sbin/ README.md LICENSE
+	@tar cvzf cnb-shim-$(VERSION).tgz --no-xattrs bin/ sbin/ README.md LICENSE
 
 release:
 	@git tag $(VERSION)
