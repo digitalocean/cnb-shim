@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/buildpack/libbuildpack/logger"
-	"github.com/heroku/cnb-shim"
+	cnbshim "github.com/heroku/cnb-shim"
 )
 
 func main() {
@@ -17,7 +17,7 @@ func main() {
 
 	log, err := logger.DefaultLogger(os.Args[3])
 	if err != nil {
-		log.Info(err.Error())
+		log.Info("Error occurred: %s", err)
 		os.Exit(1)
 	}
 
@@ -26,13 +26,13 @@ func main() {
 
 	appDir, err := filepath.Abs(os.Args[4])
 	if err != nil {
-		log.Info(err.Error())
+		log.Info("Error occurred: %s", err)
 		os.Exit(2)
 	}
 
 	err = cnbshim.WriteLaunchMetadata(appDir, layersDir, targetDir, log)
 	if err != nil {
-		log.Info(err.Error())
+		log.Info("Error occurred: %s", err)
 		os.Exit(3)
 	}
 }
